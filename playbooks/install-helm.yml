@@ -6,8 +6,8 @@
   - name: Download and extrack helm package
     unarchive:
       src: "{{ helm_url }}"
-      dest: /tmp/heml.tar.gz
-      mode: '0755'
+      dest: /tmp
+      remote_src: yes
     when: (inventory_hostname == "kmaster0") and (helm_install == "true" )
 
   - name: Move helm to /usr/local/bin/helm
