@@ -1,0 +1,39 @@
+---
+
+- import_playbook: playbooks/terraform-infra-deploy.yml
+
+- import_playbook: playbooks/add-new-nodes-ssh-know-hosts.yml
+
+- import_playbook: playbooks/troca-chaves-ssh_v2.yml
+
+- import_playbook: playbooks/chrony.yml
+
+- import_playbook: playbooks/swap-disable.yml
+
+- import_playbook: playbooks/create_sysctl.d_k8s_conf.yml
+
+- import_playbook: playbooks/fw-rules.yml
+
+- import_playbook: playbooks/selinux-adjusts.yml
+
+- import_playbook: playbooks/createdockerdisk.yml
+
+- import_playbook: playbooks/install-kube-services.yml
+
+- import_playbook: playbooks/install-haproxy-lb.yml
+
+- import_playbook: playbooks/start-k8s-cluster.yml
+
+- import_playbook: playbooks/calico-fw.yml
+
+- import_playbook: playbooks/deploy-calico-cni.yml
+
+- import_playbook: playbooks/install-calicoctl.yml
+
+- import_playbook: playbooks/fetch-join-files.yml
+
+- import_playbook: playbooks/join-cp.yml
+
+- import_playbook: playbooks/join-worker.yml
+
+- import_playbook: playbooks/install-helm.yml

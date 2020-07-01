@@ -1,0 +1,13 @@
+---
+- name: Terraform Infra Delete
+  hosts: local
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - terraform:
+        project_path: '{{ project_dir }}'
+        state: absent
+      register: terraform_output
+    - debug:
+        var: terraform_output.stdout_lines

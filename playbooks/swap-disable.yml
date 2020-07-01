@@ -1,0 +1,12 @@
+- name: Disable SWAP
+  hosts: cp,wk
+  become: true
+  tasks:
+  - name: Disable SWAP Task (1/2)
+    shell: |
+      swapoff -a
+  - name: Disable SWAP Task (2/2)
+    replace:
+      path: /etc/fstab
+      regexp: '^([^#].*?\sswap\s)'
+      replace: '# \1'

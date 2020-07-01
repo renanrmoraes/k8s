@@ -1,0 +1,12 @@
+- name: Teste
+  hosts: cp
+  gather_facts: False
+  tasks:
+  - name: Initialize cluster Kubernetes
+    shell: |
+      kubeadm init --control-plane-endpoint "k8s.home.lab:6443" --upload-certs --service-cidr=172.30.0.0/16 --pod-network-cidr=10.128.0.0/14 > kubeadm.out &&
+      cat kubeadm.out | grep mkdir -A3 > kubeconfig.sh &&
+      sh kubeconfig.sh &&
+      cat kubeadm.out | grep "control-plane node" -A4 | grep kubeadm -A3 > kubeadm-cp-join.sh &&
+      cat kubeadm.out | grep "worker nodes" -A3 | grep kubeadm -A2 > kubeadm-worker-join.sh
+    when: inventory_hostname == "kmaster0"

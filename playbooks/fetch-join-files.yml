@@ -1,0 +1,17 @@
+- name: Fetch files from first control-plane
+  hosts: cp
+  gather_facts: False
+  tasks:
+  - name: Fetch control-plane node join command
+    fetch:
+      src: kubeadm-cp-join.sh
+      dest: ./scripts/kubeadm-cp-join.sh
+      flat: true
+    when: inventory_hostname == "kmaster0"
+
+  - name: Fetch worker node join command
+    fetch:
+      src: kubeadm-worker-join.sh
+      dest: ./scripts/kubeadm-worker-join.sh
+      flat: true
+    when: inventory_hostname == "kmaster0"

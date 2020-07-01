@@ -1,0 +1,8 @@
+- name: Teste
+  hosts: cp
+  gather_facts: False
+  tasks:
+  - name: Initialize cluster Kubernetes
+    shell: |
+      kubectl apply -f https://docs.projectcalico.org/v3.14/manifests/calico.yaml      
+    when: inventory_hostname == "kmaster0"

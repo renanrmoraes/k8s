@@ -1,0 +1,36 @@
+---
+- hosts: cp
+  tasks:
+  - firewalld:
+      zone: public
+      port: 6443/tcp
+      permanent: true
+      state: enabled
+  - firewalld:
+      zone: public
+      port: 2379-2380/tcp
+      permanent: true
+      state: enabled
+  - firewalld:
+      zone: public
+      port: 10250-10252/tcp
+      permanent: true
+      state: enabled
+
+- hosts: wk
+  tasks:
+  - firewalld:
+      zone: public
+      port: 10250/tcp
+      permanent: true
+      state: enabled
+  - firewalld:
+      zone: public
+      port: 30000-32767/tcp
+      permanent: true
+      state: enabled
+
+- hosts: cp,wk
+  tasks:
+  - name: firewalld reload
+    command: firewall-cmd --reload

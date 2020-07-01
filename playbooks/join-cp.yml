@@ -1,0 +1,14 @@
+- name: Teste
+  hosts: cp
+  gather_facts: False
+  tasks:
+  - name: Copy comando to add cp to cluster
+    copy:
+      src: ./scripts/kubeadm-cp-join.sh
+      dest: /tmp/kubeadm-cp-join.sh
+    when: inventory_hostname != "kmaster0"
+
+  - name: Join cp to cluster
+    shell: |
+      sh /tmp/kubeadm-cp-join.sh
+    when: inventory_hostname != "kmaster0"

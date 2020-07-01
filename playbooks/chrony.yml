@@ -1,0 +1,24 @@
+---
+- name: configure NTP in the cluster using Chrony
+  hosts: cp,wk,lb
+  vars:
+    servers:
+    - "{{ time_server }}"
+  tasks:
+  - name: Install chrony
+    yum:
+      name: chrony
+      state: present
+  - name: configure Chrony
+    template:
+      src: templates/chrony.conf.j2
+      dest: /etc/chrony.conf
+  - name: restart chrony
+    service:
+      name: chronyd
+      state: restarted
+  - name: checking chrony
+    shell: "chronyc tracking"
+    register: result
+  - debug:
+      msg: "result.stdout"

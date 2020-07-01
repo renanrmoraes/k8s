@@ -1,0 +1,67 @@
+- name: Install HAPROXY
+  hosts: lb
+  become: true
+  tasks:
+  - name: selinux setenforce 0
+    command: setenforce 0
+  - name: Put SELinux in disabled mode, logging actions that would be blocked.
+    selinux:
+      policy: targeted
+      state: disabled
+  - name: Stop and Disable Service firewalld
+    service:
+      name: firewalld
+      state: stopped
+      enabled: false
+
+  - name: Install haproxy
+    yum:
+      name: haproxy
+      state: latest
+
+  - name: Create file haproxy.cfg
+    copy:
+      dest: "/etc/haproxy/haproxy.cfg"
+      content: |
+        defaults
+            mode                    tcp
+            log                     global
+            retries                 3
+            timeout http-request    10s
+            timeout queue           1m
+            timeout connect         10s
+            timeout client          300s
+            timeout server          300s
+            timeout http-keep-alive 10s
+            timeout check           10s
+        
+        
+        ############# Configuração das pagina de estatisticas do haproxy porta 9000 #################
+        
+        listen stats
+            bind :9000
+            mode http
+            stats enable
+            stats uri /
+        
+        #############################################################################################
+        
+        ############# Configuração front/back end acesso api porta 6443 #############################
+        
+        frontend  front-control-plane-api
+            bind *:6443
+            default_backend back-control-plane-api
+            option		tcplog
+        
+        backend back-control-plane-api
+            balance     roundrobin
+            server      control-plane-0 192.168.1.130:6443 check
+            server      control-plane-1 192.168.1.131:6443 check
+        	server      control-plane-2 192.168.1.132:6443 check
+        
+        #############################################################################################	  
+  - name: Enable and Start Service haproxy
+    service:
+      name: haproxy
+      state: started
+      enabled: true

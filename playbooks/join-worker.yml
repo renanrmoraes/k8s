@@ -1,0 +1,11 @@
+- name: Join worker node to cluster
+  hosts: wk
+  gather_facts: False
+  tasks:
+  - name: Copy command to join worker to cluster
+    copy:
+      src: ./scripts/kubeadm-worker-join.sh
+      dest: /tmp/kubeadm-worker-join.sh
+
+  - name: Join worker to cluster
+    shell: sh /tmp/kubeadm-worker-join.sh

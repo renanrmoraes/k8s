@@ -1,0 +1,30 @@
+---
+- name: accept ssh fingerprint automatically for the first time
+  hosts: local
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Create a directory /tmp/script if it does not exist
+      file:
+        path: /tmp/scripts/
+        state: directory
+        mode: '0755'
+
+    - name: Copy script to temp
+      copy:
+        src: scripts/troca_chave.sh
+        dest: /tmp/scripts/troca_chave.sh
+
+    - name: Copy script to temp
+      copy:
+        src: ../hosts.k8s
+        dest: /tmp/scripts/hosts.k8s
+
+    - name: Run a script with arguments (using 'cmd' parameter)
+      script:
+        cmd: /tmp/scripts/troca_chave.sh --some-argument "{{ ssh_pass }}"
+      register: script_output
+
+    - debug:
+        var: script_output

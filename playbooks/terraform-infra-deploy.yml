@@ -1,0 +1,13 @@
+---
+- name: Terraform Infra Provisioning
+  hosts: local
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - terraform:
+        project_path: '{{ project_dir }}'
+        state: present
+      register: terraform_output
+    - debug:
+        var: terraform_output.stdout_lines

@@ -1,0 +1,23 @@
+[local]
+localhost ansible_connection=local
+
+[cp]
+kmaster[0:2]
+
+[wk]
+knode[0:2]
+
+[lb]
+klb
+
+[all:vars]
+service-cidr="172.30.0.0/16"
+pod-network-cidr="10.128.0.0/14"
+control-plane-endpoint="k8s.home.lab:6443"
+
+time_server="ntp.home.lab"
+ssh_pass="q1w2e3R$"
+project_dir="/root/git/terraform-k8s/"
+
+helm_url="https://get.helm.sh/helm-v3.2.4-linux-amd64.tar.gz"
+helm_install=true 

@@ -1,0 +1,131 @@
+---
+- name: Preparate the Docker Storage OverlayFS2 in a Different Disk
+  hosts: cp,wk
+  become: true
+  tasks:
+  - name: Reinstalling docker
+    yum:
+      name: docker
+      state: latest
+  - name: Stop docker
+    service:
+      name: docker
+      state: stopped
+  - name: Umount docker LVs
+    mount:
+      path: "{{ item }}"
+      state: unmounted
+    with_items:
+      - "/var/lib/docker/containers"
+      - "/var/lib/docker/overlay2"
+      - "/var/lib/docker"
+  - name: Removing old files
+    file:
+      path: "{{ item }}"
+      state: absent
+    with_items:
+      - "/var/lib/docker/*"
+      - "/etc/sysconfig/docker-storage"
+  - name: Remove old docker-pool LV name
+    lineinfile:
+      line: "{{ item }}"
+      path: /etc/sysconfig/docker-storage-setup
+      state: absent
+    with_items:
+      - "DEVICE=/dev/sdb1"
+      - "VG=dockervg"
+      - "CONTAINER_THINPOOL=dockerpool"
+      - "CONTAINER_THINPOOL=docker-pool"
+      - "CONTAINER_THINPOOL=docker-pool"
+      - "CONTAINER_ROOT_LV_NAME=dockerpool"
+      - "CONTAINER_ROOT_LV_SIZE=100%FREE"
+      - "CONTAINER_ROOT_LV_MOUNT_PATH=/var/lib/docker"
+  - name: Checking partition
+    stat:
+      path: /dev/sdb1
+    register: partition
+
+  - name: Creating partition
+    parted:
+      device: /dev/sdb
+      number: 1
+      flags: [ lvm ]
+      state: present
+    when: not partition.stat.exists
+
+  - name: Creating VG
+    lvg:
+      vg: dockervg
+      pvs: /dev/sdb1
+
+  - name: Creating LV
+    lvol:
+      vg: dockervg
+      lv: dockerlv
+      pvs: /dev/sdb1
+      size: "100%FREE"
+      state: present
+    ignore_errors: true
+
+  - name: Creating filesystem
+    filesystem:
+      fstype: xfs
+      dev: /dev/mapper/dockervg-dockerlv
+
+  - name: Getting LV id
+    shell: "blkid /dev/mapper/dockervg-dockerlv | cut -d' ' -f2"
+    register: uuid
+
+  - name: Checking /var/lib/docker fstab
+    lineinfile:
+      dest: /etc/fstab
+      regexp: ".*/var/lib/docker.*"
+      line: "/var/lib/docker"
+    check_mode: yes
+    register: presencedocker
+    ignore_errors: true
+
+  - name: Checking UUID in the fstab
+    lineinfile:
+      dest: /etc/fstab
+      regexp: ".*{{uuid.stdout}}.*"
+      line: "{{uuid.stdout}}"
+    check_mode: yes
+    register: presenceuuid
+    when: uuid.stdout.find('UUID') != -1
+    ignore_errors: true
+
+  - name: Adding filesystem in the fstab
+    lineinfile:
+      dest: /etc/fstab
+      line: "{{uuid.stdout}} /var/lib/docker/  xfs  defaults,nofail  1 2"
+      state: present
+    when: (presenceuuid is not changed) and (presencedocker is not changed)
+
+  - name: Replacing filesystem in the fstab
+    lineinfile:
+      dest: /etc/fstab
+      line: "{{uuid.stdout}} /var/lib/docker/  xfs  defaults,nofail  1 2"
+      state: present
+    when: (presenceuuid is not changed) and (presencedocker is changed)
+
+  - name: Mounting /var/lib/docker
+    mount:
+      src: "{{uuid.stdout}}"
+      path: /var/lib/docker
+      fstype: xfs
+      state: mounted
+
+  - name: Apply SELinux file context to /var/lib/docker
+    command: restorecon -R /var/lib/docker
+
+  - name: Starting docker-storage-setup
+    service:
+      name: docker-storage-setup
+      state: started
+
+  - name: Start docker
+    service:
+      name: docker
+      state: started
+      enabled: yes

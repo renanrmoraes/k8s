@@ -1,0 +1,13 @@
+---
+- name: accept ssh fingerprint automatically for the first time
+  hosts: local
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - name: Run a shell command
+      shell : for i in $(ansible -i ../hosts.k8s --list-hosts all | grep k);do sshpass -p "{{ ssh_pass }}" ssh-copy-id $i ;done
+      register: shell_output
+
+    - debug:
+        var: shell_output.stdout_lines

@@ -1,0 +1,16 @@
+- name: Install calicoctl
+  hosts: cp
+  gather_facts: False
+  tasks:
+
+  - name: Download and extrack helm package
+    unarchive:
+      src: "{{ helm_url }}"
+      dest: /tmp/heml.tar.gz
+      mode: '0755'
+    when: (inventory_hostname == "kmaster0") and (helm_install == "true" )
+
+  - name: Move helm to /usr/local/bin/helm
+    command: mv /tmp/linux-amd64/helm /usr/local/bin/helm
+    when: (inventory_hostname == "kmaster0") and (helm_install == "true" )
+
